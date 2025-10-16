@@ -1,0 +1,265 @@
+version: '3.8'
+
+services:
+  # =============================================
+  # SERVICE DISCOVERY & CONFIGURATION
+  # =============================================
+  consul:
+    image: consul:1.17
+    container_name: dgtt-consul
+    command: agent -config-file=/consul/config/config.json
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    volumes:
+      - consul_data:/consul/data
+      - ./consul/config.json:/consul/config/config.json:ro
+      - ./consul/services:/consul/config/services:ro
+    networks:
+      - dgtt-network
+    restart: unless-stopped
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # =============================================
+  # DATABASE
+  # =============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: dgtt-postgres
+    environment:
+      POSTGRES_DB: dgtt_auto_ecole
+      POSTGRES_USER: dgtt_user
+      POSTGRES_PASSWORD: dgtt_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - dgtt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dgtt_user -d dgtt_auto_ecole"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =============================================
+  # REDIS CACHE
+  # =============================================
+  redis:
+    image: redis:7-alpine
+    container_name: dgtt-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dgtt-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # =============================================
+  # MESSAGE QUEUE (RabbitMQ)
+  # =============================================
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: dgtt-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=dgtt_user
+      - RABBITMQ_DEFAULT_PASS=dgtt_password
+      - RABBITMQ_DEFAULT_VHOST=dgtt_vhost
+      - RABBITMQ_DEFINITIONS_FILE=/etc/rabbitmq/definitions.json
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      - dgtt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # =============================================
+  # REVERSE PROXY & LOAD BALANCER
+  # =============================================
+  traefik:
+    image: traefik:v3.0
+    container_name: dgtt-traefik
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.email=admin@dgtt.fr
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_acme:/letsencrypt
+    networks:
+      - dgtt-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.dgtt.local`)"
+      - "traefik.http.routers.traefik.entrypoints=web"
+
+  # =============================================
+  # BACKEND API (Laravel)
+  # =============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dgtt-backend
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=dgtt_auto_ecole
+      - DB_USERNAME=dgtt_user
+      - DB_PASSWORD=dgtt_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=dgtt_user
+      - RABBITMQ_PASSWORD=dgtt_password
+      - RABBITMQ_VHOST=dgtt_vhost
+    volumes:
+      - backend_storage:/var/www/html/storage
+    networks:
+      - dgtt-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.dgtt.local`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================
+  # FRONTEND GATEWAY
+  # =============================================
+  frontend-gateway:
+    build:
+      context: ./frontend-gateway
+      dockerfile: Dockerfile
+    container_name: dgtt-frontend-gateway
+    networks:
+      - dgtt-network
+    depends_on:
+      - consul
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway.rule=Host(`dgtt.local`)"
+      - "traefik.http.routers.gateway.entrypoints=web"
+      - "traefik.http.services.gateway.loadbalancer.server.port=80"
+
+  # =============================================
+  # ADMIN FRONTEND
+  # =============================================
+  frontend-admin:
+    build:
+      context: ./frontend-admin
+      dockerfile: Dockerfile
+    container_name: dgtt-frontend-admin
+    networks:
+      - dgtt-network
+    depends_on:
+      - consul
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.admin.rule=Host(`admin.dgtt.local`)"
+      - "traefik.http.routers.admin.entrypoints=web"
+      - "traefik.http.services.admin.loadbalancer.server.port=80"
+
+  # =============================================
+  # STUDENT FRONTEND
+  # =============================================
+  frontend-student:
+    build:
+      context: ./frontend-student
+      dockerfile: Dockerfile
+    container_name: dgtt-frontend-student
+    networks:
+      - dgtt-network
+    depends_on:
+      - consul
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.student.rule=Host(`student.dgtt.local`)"
+      - "traefik.http.routers.student.entrypoints=web"
+      - "traefik.http.services.student.loadbalancer.server.port=80"
+
+volumes:
+  # Database volumes
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  
+  # Service discovery volumes
+  consul_data:
+  consul_config:
+  
+  # Traefik volumes
+  traefik_acme:
+  
+  # Application volumes
+  backend_storage:
+
+networks:
+  dgtt-network:
+    driver: bridge

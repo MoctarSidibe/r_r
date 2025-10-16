@@ -1,0 +1,142 @@
+{
+  "rabbit_version": "3.12.0",
+  "rabbitmq_version": "3.12.0",
+  "product_name": "RabbitMQ",
+  "product_version": "3.12.0",
+  "users": [
+    {
+      "name": "dgtt_user",
+      "password_hash": "dgtt_password",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    },
+    {
+      "name": "dgtt_worker",
+      "password_hash": "dgtt_worker_password",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "management"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "dgtt_vhost"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "dgtt_user",
+      "vhost": "dgtt_vhost",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "dgtt_worker",
+      "vhost": "dgtt_vhost",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "dgtt.notifications",
+      "vhost": "dgtt_vhost",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "dgtt.reports",
+      "vhost": "dgtt_vhost",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "dgtt.emails",
+      "vhost": "dgtt_vhost",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "notifications.email",
+      "vhost": "dgtt_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 3600000
+      }
+    },
+    {
+      "name": "notifications.sms",
+      "vhost": "dgtt_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 3600000
+      }
+    },
+    {
+      "name": "reports.generation",
+      "vhost": "dgtt_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 7200000
+      }
+    },
+    {
+      "name": "emails.send",
+      "vhost": "dgtt_vhost",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-message-ttl": 3600000
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "dgtt.notifications",
+      "vhost": "dgtt_vhost",
+      "destination": "notifications.email",
+      "destination_type": "queue",
+      "routing_key": "email.*",
+      "arguments": {}
+    },
+    {
+      "source": "dgtt.notifications",
+      "vhost": "dgtt_vhost",
+      "destination": "notifications.sms",
+      "destination_type": "queue",
+      "routing_key": "sms.*",
+      "arguments": {}
+    },
+    {
+      "source": "dgtt.reports",
+      "vhost": "dgtt_vhost",
+      "destination": "reports.generation",
+      "destination_type": "queue",
+      "routing_key": "generate.*",
+      "arguments": {}
+    },
+    {
+      "source": "dgtt.emails",
+      "vhost": "dgtt_vhost",
+      "destination": "emails.send",
+      "destination_type": "queue",
+      "routing_key": "send",
+      "arguments": {}
+    }
+  ]
+}

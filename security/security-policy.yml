@@ -1,0 +1,229 @@
+# DGTT Auto-École Security Policy
+# Comprehensive security configuration for production deployment
+
+# =============================================
+# NETWORK SECURITY
+# =============================================
+network_security:
+  firewall_rules:
+    # Allow only necessary ports
+    allowed_ports:
+      - 22    # SSH (restrict to specific IPs)
+      - 80    # HTTP
+      - 443   # HTTPS
+      - 8080  # Traefik Dashboard (restrict access)
+      - 8500  # Consul UI (restrict access)
+      - 3000  # Grafana (restrict access)
+    
+    # Block dangerous ports
+    blocked_ports:
+      - 21    # FTP
+      - 23    # Telnet
+      - 25    # SMTP (use authenticated SMTP)
+      - 135   # RPC
+      - 139   # NetBIOS
+      - 445   # SMB
+      - 1433  # SQL Server
+      - 3389  # RDP
+  
+  rate_limiting:
+    api_requests: "100/minute"
+    auth_attempts: "5/minute"
+    file_uploads: "10/minute"
+
+# =============================================
+# APPLICATION SECURITY
+# =============================================
+application_security:
+  authentication:
+    jwt:
+      algorithm: "RS256"
+      expiration: "3600"  # 1 hour
+      refresh_expiration: "86400"  # 24 hours
+      secret_rotation: "30 days"
+    
+    password_policy:
+      min_length: 12
+      require_uppercase: true
+      require_lowercase: true
+      require_numbers: true
+      require_special_chars: true
+      max_age_days: 90
+      prevent_reuse: 5
+    
+    session_security:
+      timeout: "1800"  # 30 minutes
+      regenerate_on_login: true
+      secure_cookies: true
+      http_only_cookies: true
+      same_site: "strict"
+  
+  authorization:
+    rbac_enabled: true
+    roles:
+      - admin
+      - instructor
+      - student
+      - candidate
+    
+    permissions:
+      admin: ["*"]
+      instructor: ["read:students", "write:lessons", "read:schedule"]
+      student: ["read:own_data", "write:bookings", "read:lessons"]
+      candidate: ["read:own_data", "write:registration"]
+  
+  data_validation:
+    input_sanitization: true
+    sql_injection_protection: true
+    xss_protection: true
+    csrf_protection: true
+    file_upload_validation: true
+    max_file_size: "10MB"
+    allowed_file_types: ["jpg", "jpeg", "png", "pdf", "doc", "docx"]
+
+# =============================================
+# DATABASE SECURITY
+# =============================================
+database_security:
+  encryption:
+    at_rest: true
+    in_transit: true
+    algorithm: "AES-256"
+  
+  access_control:
+    connection_encryption: "SSL/TLS"
+    user_permissions:
+      application_user: "read_write_limited"
+      backup_user: "read_only"
+      admin_user: "full_access"
+    
+    network_restrictions:
+      allowed_hosts: ["backend-auto-ecole", "postgres-replica"]
+      blocked_networks: ["0.0.0.0/0"]
+  
+  backup_security:
+    encryption: true
+    compression: true
+    retention_days: 30
+    offsite_storage: true
+    access_logging: true
+
+# =============================================
+# CONTAINER SECURITY
+# =============================================
+container_security:
+  base_images:
+    use_official: true
+    scan_vulnerabilities: true
+    update_frequency: "weekly"
+  
+  runtime_security:
+    non_root_user: true
+    read_only_filesystem: true
+    drop_capabilities: true
+    no_new_privileges: true
+    seccomp_profile: "default"
+    apparmor_profile: "docker-default"
+  
+  resource_limits:
+    memory_limit: "1GB"
+    cpu_limit: "0.5"
+    disk_limit: "10GB"
+    network_bandwidth: "100Mbps"
+
+# =============================================
+# MONITORING & LOGGING
+# =============================================
+monitoring_security:
+  log_retention:
+    application_logs: "90 days"
+    security_logs: "1 year"
+    audit_logs: "7 years"
+  
+  sensitive_data:
+    mask_in_logs: true
+    fields_to_mask:
+      - password
+      - token
+      - secret
+      - key
+      - credit_card
+      - ssn
+  
+  alerting:
+    security_events:
+      - failed_login_attempts
+      - privilege_escalation
+      - data_breach_attempts
+      - suspicious_network_activity
+      - unauthorized_access
+    
+    notification_channels:
+      - email
+      - slack
+      - sms
+
+# =============================================
+# COMPLIANCE
+# =============================================
+compliance:
+  gdpr:
+    data_encryption: true
+    right_to_erasure: true
+    data_portability: true
+    consent_management: true
+    data_retention_policy: true
+  
+  pci_dss:
+    payment_encryption: true
+    secure_transmission: true
+    access_control: true
+    monitoring: true
+  
+  iso27001:
+    risk_assessment: true
+    security_policies: true
+    incident_response: true
+    business_continuity: true
+
+# =============================================
+# INCIDENT RESPONSE
+# =============================================
+incident_response:
+  automated_response:
+    block_suspicious_ips: true
+    rate_limit_aggressive_requests: true
+    disable_compromised_accounts: true
+  
+  escalation_procedures:
+    level_1: "automated_response"
+    level_2: "security_team_notification"
+    level_3: "management_escalation"
+    level_4: "external_security_firm"
+  
+  recovery_procedures:
+    backup_restoration: "4 hours"
+    service_recovery: "1 hour"
+    data_integrity_check: "mandatory"
+    security_patch_application: "immediate"
+
+# =============================================
+# SECURITY TESTING
+# =============================================
+security_testing:
+  automated_tests:
+    vulnerability_scanning: "daily"
+    penetration_testing: "monthly"
+    code_analysis: "on_commit"
+    dependency_checking: "daily"
+  
+  manual_tests:
+    security_review: "quarterly"
+    penetration_testing: "annually"
+    social_engineering_test: "annually"
+  
+  tools:
+    static_analysis: "SonarQube"
+    dynamic_analysis: "OWASP ZAP"
+    dependency_scan: "Snyk"
+    container_scan: "Trivy"

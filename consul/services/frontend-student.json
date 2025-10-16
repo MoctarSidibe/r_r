@@ -1,0 +1,19 @@
+{
+  "service": {
+    "id": "frontend-student",
+    "name": "frontend-student",
+    "tags": ["frontend", "student", "react"],
+    "port": 80,
+    "address": "frontend-student",
+    "check": {
+      "http": "http://frontend-student/health",
+      "interval": "10s",
+      "timeout": "3s",
+      "deregister_critical_service_after": "30s"
+    },
+    "meta": {
+      "version": "1.0.0",
+      "environment": "production"
+    }
+  }
+}

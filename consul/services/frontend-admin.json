@@ -1,0 +1,19 @@
+{
+  "service": {
+    "id": "frontend-admin",
+    "name": "frontend-admin",
+    "tags": ["frontend", "admin", "react"],
+    "port": 80,
+    "address": "frontend-admin",
+    "check": {
+      "http": "http://frontend-admin/health",
+      "interval": "10s",
+      "timeout": "3s",
+      "deregister_critical_service_after": "30s"
+    },
+    "meta": {
+      "version": "1.0.0",
+      "environment": "production"
+    }
+  }
+}

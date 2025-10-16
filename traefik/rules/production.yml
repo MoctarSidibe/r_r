@@ -1,0 +1,131 @@
+# Traefik Production Rules
+# Règles pour l'environnement de production avec SSL
+
+http:
+  routers:
+    # Production Routes with SSL
+    prod-backend:
+      rule: "Host(`api.dgtt.fr`)"
+      service: "backend-api"
+      middlewares:
+        - prod-security
+        - prod-cors
+        - prod-rate-limit
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    prod-gateway:
+      rule: "Host(`dgtt.fr`)"
+      service: "frontend-gateway"
+      middlewares:
+        - prod-security
+        - prod-headers
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    prod-admin:
+      rule: "Host(`admin.dgtt.fr`)"
+      service: "frontend-admin"
+      middlewares:
+        - prod-security
+        - prod-headers
+        - admin-auth
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    prod-student:
+      rule: "Host(`student.dgtt.fr`)"
+      service: "frontend-student"
+      middlewares:
+        - prod-security
+        - prod-headers
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    # Redirect HTTP to HTTPS
+    http-redirect:
+      rule: "Host(`dgtt.fr`) || Host(`api.dgtt.fr`) || Host(`admin.dgtt.fr`) || Host(`student.dgtt.fr`)"
+      service: "noop@internal"
+      middlewares:
+        - https-redirect
+      entryPoints:
+        - web
+
+  middlewares:
+    # Production Security Headers
+    prod-security:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+        accessControlMaxAge: 100
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        referrerPolicy: "strict-origin-when-cross-origin"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Content-Type-Options: "nosniff"
+          X-Frame-Options: "DENY"
+          X-XSS-Protection: "1; mode=block"
+          Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"
+          Content-Security-Policy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' ws: wss:;"
+          Permissions-Policy: "geolocation=(), microphone=(), camera=()"
+
+    # Production CORS
+    prod-cors:
+      headers:
+        accessControlAllowOriginList:
+          - "https://dgtt.fr"
+          - "https://admin.dgtt.fr"
+          - "https://student.dgtt.fr"
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - "Authorization"
+          - "Content-Type"
+          - "X-Requested-With"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 86400
+
+    # Production Rate Limiting
+    prod-rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+        period: "1m"
+
+    # Production Headers
+    prod-headers:
+      headers:
+        customResponseHeaders:
+          X-Powered-By: "DGTT-Auto-Ecole"
+          X-Environment: "production"
+
+    # Admin Authentication
+    admin-auth:
+      basicAuth:
+        users:
+          - "admin:$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"  # admin:password
+
+    # HTTPS Redirect
+    https-redirect:
+      redirectRegex:
+        regex: "^https://(.*)"
+        replacement: "https://${1}"
+        permanent: true

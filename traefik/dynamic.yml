@@ -1,0 +1,199 @@
+# Traefik Dynamic Configuration
+# Configuration dynamique pour les middlewares et routers
+
+http:
+  middlewares:
+    # Security Headers
+    security-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+        accessControlMaxAge: 100
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        referrerPolicy: "same-origin"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Content-Type-Options: "nosniff"
+          X-Frame-Options: "DENY"
+          X-XSS-Protection: "1; mode=block"
+          Strict-Transport-Security: "max-age=31536000; includeSubDomains"
+          Content-Security-Policy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' ws: wss:;"
+
+    # Rate Limiting
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+
+    # CORS
+    cors:
+      headers:
+        accessControlAllowOriginList:
+          - "http://localhost:3000"
+          - "http://dgtt.local"
+          - "http://admin.dgtt.local"
+          - "http://student.dgtt.local"
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - "*"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+    # Authentication (Basic Auth for Traefik Dashboard)
+    traefik-auth:
+      basicAuth:
+        users:
+          - "admin:$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"  # admin:password
+
+    # RabbitMQ Authentication
+    rabbitmq-auth:
+      basicAuth:
+        users:
+          - "dgtt_user:$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"  # dgtt_user:dgtt_password
+
+    # Strip Prefix for API
+    api-stripprefix:
+      stripPrefix:
+        prefixes:
+          - "/api"
+
+    # Add Prefix
+    api-addprefix:
+      addPrefix:
+        prefix: "/api"
+
+  # Routers
+  routers:
+    # Traefik Dashboard
+    traefik-dashboard:
+      rule: "Host(`traefik.dgtt.local`)"
+      service: "api@internal"
+      middlewares:
+        - traefik-auth
+      entryPoints:
+        - web
+
+    # RabbitMQ Management
+    rabbitmq-management:
+      rule: "Host(`rabbitmq.dgtt.local`)"
+      service: "rabbitmq-management"
+      middlewares:
+        - security-headers
+        - rabbitmq-auth
+      entryPoints:
+        - web
+
+    # API Backend
+    backend-api:
+      rule: "Host(`api.dgtt.local`) || Host(`dgtt.local`) && PathPrefix(`/api`)"
+      service: "backend-api"
+      middlewares:
+        - security-headers
+        - cors
+        - rate-limit
+        - api-stripprefix
+      entryPoints:
+        - web
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    # Frontend Gateway
+    frontend-gateway:
+      rule: "Host(`dgtt.local`) && !PathPrefix(`/api`)"
+      service: "frontend-gateway"
+      middlewares:
+        - security-headers
+        - cors
+        - rate-limit
+      entryPoints:
+        - web
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    # Admin Frontend
+    frontend-admin:
+      rule: "Host(`admin.dgtt.local`)"
+      service: "frontend-admin"
+      middlewares:
+        - security-headers
+        - cors
+        - rate-limit
+      entryPoints:
+        - web
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    # Student Frontend
+    frontend-student:
+      rule: "Host(`student.dgtt.local`)"
+      service: "frontend-student"
+      middlewares:
+        - security-headers
+        - cors
+        - rate-limit
+      entryPoints:
+        - web
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+  # Services
+  services:
+    backend-api:
+      loadBalancer:
+        servers:
+          - url: "http://backend"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+          timeout: "5s"
+
+    frontend-gateway:
+      loadBalancer:
+        servers:
+          - url: "http://frontend-gateway"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+          timeout: "5s"
+
+    frontend-admin:
+      loadBalancer:
+        servers:
+          - url: "http://frontend-admin"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+          timeout: "5s"
+
+    frontend-student:
+      loadBalancer:
+        servers:
+          - url: "http://frontend-student"
+        healthCheck:
+          path: "/health"
+          interval: "30s"
+          timeout: "5s"
+
+    rabbitmq-management:
+      loadBalancer:
+        servers:
+          - url: "http://rabbitmq:15672"
+        healthCheck:
+          path: "/api/overview"
+          interval: "30s"
+          timeout: "5s"

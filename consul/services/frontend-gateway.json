@@ -1,0 +1,19 @@
+{
+  "service": {
+    "id": "frontend-gateway",
+    "name": "frontend-gateway",
+    "tags": ["frontend", "gateway", "nginx"],
+    "port": 80,
+    "address": "frontend-gateway",
+    "check": {
+      "http": "http://frontend-gateway/health",
+      "interval": "10s",
+      "timeout": "3s",
+      "deregister_critical_service_after": "30s"
+    },
+    "meta": {
+      "version": "1.0.0",
+      "environment": "production"
+    }
+  }
+}

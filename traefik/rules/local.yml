@@ -1,0 +1,69 @@
+# Traefik Local Development Rules
+# Règles pour le développement local avec hosts personnalisés
+
+http:
+  routers:
+    # Development Routes
+    dev-backend:
+      rule: "Host(`api.dgtt.local`)"
+      service: "backend-api"
+      middlewares:
+        - dev-cors
+        - dev-headers
+      entryPoints:
+        - web
+
+    dev-gateway:
+      rule: "Host(`dgtt.local`)"
+      service: "frontend-gateway"
+      middlewares:
+        - dev-headers
+      entryPoints:
+        - web
+
+    dev-admin:
+      rule: "Host(`admin.dgtt.local`)"
+      service: "frontend-admin"
+      middlewares:
+        - dev-headers
+      entryPoints:
+        - web
+
+    dev-student:
+      rule: "Host(`student.dgtt.local`)"
+      service: "frontend-student"
+      middlewares:
+        - dev-headers
+      entryPoints:
+        - web
+
+  middlewares:
+    # Development CORS
+    dev-cors:
+      headers:
+        accessControlAllowOriginList:
+          - "http://localhost:3000"
+          - "http://localhost:3001"
+          - "http://localhost:3002"
+          - "http://dgtt.local"
+          - "http://admin.dgtt.local"
+          - "http://student.dgtt.local"
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        accessControlAllowHeaders:
+          - "*"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 100
+
+    # Development Headers
+    dev-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "http"
+        customResponseHeaders:
+          X-Development: "true"
+          X-Powered-By: "DGTT-Auto-Ecole"

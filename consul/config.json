@@ -1,0 +1,30 @@
+{
+  "datacenter": "dc1",
+  "data_dir": "/consul/data",
+  "log_level": "INFO",
+  "node_name": "server-1",
+  "server": true,
+  "bootstrap_expect": 1,
+  "bind_addr": "0.0.0.0",
+  "client_addr": "0.0.0.0",
+  "ui_config": {
+    "enabled": true
+  },
+  "connect": {
+    "enabled": true
+  },
+  "ports": {
+    "grpc": 8502
+  },
+  "retry_join": [],
+  "enable_script_checks": false,
+  "enable_local_script_checks": false,
+  "acl": {
+    "enabled": false,
+    "default_policy": "allow"
+  },
+  "telemetry": {
+    "prometheus_retention_time": "30s",
+    "disable_hostname": true
+  }
+}

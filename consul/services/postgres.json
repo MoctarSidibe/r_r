@@ -1,0 +1,19 @@
+{
+  "service": {
+    "id": "postgres",
+    "name": "postgres",
+    "tags": ["database", "postgresql"],
+    "port": 5432,
+    "address": "postgres",
+    "check": {
+      "script": "pg_isready -U dgtt_user -d dgtt_auto_ecole",
+      "interval": "10s",
+      "timeout": "5s",
+      "deregister_critical_service_after": "30s"
+    },
+    "meta": {
+      "version": "15",
+      "environment": "production"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "service": {
+    "id": "backend-api",
+    "name": "backend-api",
+    "tags": ["api", "laravel", "backend"],
+    "port": 80,
+    "address": "backend",
+    "check": {
+      "http": "http://backend/health",
+      "interval": "10s",
+      "timeout": "3s",
+      "deregister_critical_service_after": "30s"
+    },
+    "meta": {
+      "version": "1.0.0",
+      "environment": "production"
+    }
+  }
+}
