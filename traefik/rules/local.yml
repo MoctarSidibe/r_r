@@ -29,9 +29,9 @@ http:
       entryPoints:
         - web
 
-    dev-student:
-      rule: "Host(`student.dgtt.local`)"
-      service: "frontend-student"
+    dev-candidate:
+      rule: "Host(`candidate.dgtt.local`)"
+      service: "frontend-candidate"
       middlewares:
         - dev-headers
       entryPoints:
@@ -47,7 +47,7 @@ http:
           - "http://localhost:3002"
           - "http://dgtt.local"
           - "http://admin.dgtt.local"
-          - "http://student.dgtt.local"
+          - "http://candidate.dgtt.local"
         accessControlAllowMethods:
           - GET
           - POST

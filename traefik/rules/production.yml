@@ -39,9 +39,9 @@ http:
       tls:
         certResolver: letsencrypt
 
-    prod-student:
-      rule: "Host(`student.dgtt.fr`)"
-      service: "frontend-student"
+    prod-candidate:
+      rule: "Host(`candidate.dgtt.fr`)"
+      service: "frontend-candidate"
       middlewares:
         - prod-security
         - prod-headers
@@ -52,7 +52,7 @@ http:
 
     # Redirect HTTP to HTTPS
     http-redirect:
-      rule: "Host(`dgtt.fr`) || Host(`api.dgtt.fr`) || Host(`admin.dgtt.fr`) || Host(`student.dgtt.fr`)"
+      rule: "Host(`dgtt.fr`) || Host(`api.dgtt.fr`) || Host(`admin.dgtt.fr`) || Host(`candidate.dgtt.fr`)"
       service: "noop@internal"
       middlewares:
         - https-redirect
@@ -89,7 +89,7 @@ http:
         accessControlAllowOriginList:
           - "https://dgtt.fr"
           - "https://admin.dgtt.fr"
-          - "https://student.dgtt.fr"
+          - "https://candidate.dgtt.fr"
         accessControlAllowMethods:
           - GET
           - POST

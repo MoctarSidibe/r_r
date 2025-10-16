@@ -1,12 +1,62 @@
 # 🚗 DGTT Auto-École - Système de Gestion
 
+[![Architecture](https://img.shields.io/badge/Architecture-Microservices-blue)](ARCHITECTURE_DIAGRAM.md)
+[![Structure](https://img.shields.io/badge/Structure-Modular-green)](PROJECT_STRUCTURE_DIAGRAM.md)
+[![Docker](https://img.shields.io/badge/Docker-Ready-orange)](docker-compose.yml)
+[![Laravel](https://img.shields.io/badge/Laravel-12-red)](backend/)
+[![React](https://img.shields.io/badge/React-18-blue)](frontend-admin/)
+
 ## 📋 Description
 
 Système de gestion complet pour auto-écoles françaises, développé avec une architecture de microservices modernes utilisant Laravel, React, et des technologies de conteneurisation Docker.
 
+### 🎯 Aperçu Visuel Rapide
+
+<details>
+<summary>🏗️ Architecture Système</summary>
+
+```mermaid
+graph LR
+    A[👨‍💼 Admin] --> T[🚦 Traefik]
+    C[🎓 Candidat] --> T
+    I[👨‍🏫 Instructeur] --> T
+    T --> G[🌐 Gateway]
+    G --> AF[📊 Frontend Admin]
+    G --> CF[🎓 Frontend Candidat]
+    AF --> B[🔧 API Laravel]
+    CF --> B
+    B --> DB[(🐘 PostgreSQL)]
+    B --> R[🔴 Redis]
+    B --> MQ[🐰 RabbitMQ]
+```
+
+</details>
+
+<details>
+<summary>📁 Structure du Projet</summary>
+
+```mermaid
+graph TD
+    R[r-dgtt/] --> F[🎨 Frontend/]
+    R --> B[⚙️ Backend/]
+    R --> I[🏗️ Infrastructure/]
+    R --> D[📚 Docs/]
+    F --> GA[frontend-gateway/]
+    F --> AD[frontend-admin/]
+    F --> CA[frontend-candidate/]
+    B --> API[backend/]
+    I --> C[consul/]
+    I --> T[traefik/]
+    I --> MQ[rabbitmq/]
+    D --> READ[README.md]
+    D --> ARCH[ARCHITECTURE_DIAGRAM.md]
+```
+
+</details>
+
 ## 🎯 Objectif
 
-Créer une plateforme complète de gestion d'auto-école qui respecte les exigences DGTT (Délégation Générale à la Tutelle des Transports) avec :
+Créer une plateforme complète de gestion d'auto-école qui respecte les exigences DGTT ( Direction generale des transports terrestre )  avec :
 - Gestion des étudiants, instructeurs et véhicules
 - Planification des cours et leçons
 - Validation manuelle des examens
@@ -22,6 +72,10 @@ Notre système utilise une architecture de microservices avec :
 - **Base de données** : PostgreSQL avec Redis pour le cache
 - **Messages** : RabbitMQ pour les tâches asynchrones
 - **Infrastructure** : Docker, Traefik, Consul
+
+### **📊 Visualisations**
+- **[🏗️ Architecture Technique](ARCHITECTURE_DIAGRAM.md)** - Diagramme complet de l'architecture système
+- **[📁 Structure du Projet](PROJECT_STRUCTURE_DIAGRAM.md)** - Organisation visuelle des fichiers et dossiers
 
 ## 📁 Structure du Projet
 
@@ -113,7 +167,7 @@ Ajoutez ces lignes à votre fichier hosts :
 
 127.0.0.1 dgtt.local
 127.0.0.1 admin.dgtt.local
-127.0.0.1 student.dgtt.local
+127.0.0.1 candidate.dgtt.local
 127.0.0.1 api.dgtt.local
 127.0.0.1 traefik.dgtt.local
 127.0.0.1 rabbitmq.dgtt.local
@@ -150,7 +204,7 @@ docker-compose exec postgres psql -U dgtt_user -d dgtt_auto_ecole
 |---------|-----|-------------|
 | **Interface Principale** | http://dgtt.local | Gateway principal |
 | **Interface Admin** | http://admin.dgtt.local | Gestion auto-école |
-| **Interface Étudiant** | http://student.dgtt.local | Portail étudiant |
+| **Interface Candidat** | http://candidate.dgtt.local | Portail candidat |
 | **API Backend** | http://api.dgtt.local | API REST |
 | **Consul UI** | http://localhost:8500 | Découverte de services |
 | **RabbitMQ Management** | http://localhost:15672 | Interface de gestion des messages |
@@ -265,7 +319,7 @@ docker-compose exec postgres psql -U dgtt_user -d dgtt_auto_ecole
 - **Planification** : Cours, leçons, disponibilités
 - **Validation d'Examens** : Validation manuelle par admin/instructeur
 
-### **🎓 Interface Étudiant**
+### **🎓 Interface Candidat**
 - **Planning Personnel** : Consultation des cours programmés
 - **Progression** : Suivi des heures et compétences
 - **Messagerie** : Communication avec les instructeurs
@@ -536,4 +590,4 @@ Pour toute question ou problème :
 
 ---
 
-**🚗 DGTT Auto-École** - Solution moderne et complète pour la gestion d'auto-écoles françaises
+**🚗 DGTT Auto-École** - Solution moderne et complète pour la gestion d'auto-écoles au Gabon

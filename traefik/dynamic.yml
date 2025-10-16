@@ -137,10 +137,10 @@ http:
       tls:
         certResolver: letsencrypt
 
-    # Student Frontend
-    frontend-student:
-      rule: "Host(`student.dgtt.local`)"
-      service: "frontend-student"
+    # Candidate Frontend
+    frontend-candidate:
+      rule: "Host(`candidate.dgtt.local`)"
+      service: "frontend-candidate"
       middlewares:
         - security-headers
         - cors
@@ -180,10 +180,10 @@ http:
           interval: "30s"
           timeout: "5s"
 
-    frontend-student:
+    frontend-candidate:
       loadBalancer:
         servers:
-          - url: "http://frontend-student"
+          - url: "http://frontend-candidate"
         healthCheck:
           path: "/health"
           interval: "30s"

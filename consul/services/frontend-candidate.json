@@ -1,12 +1,12 @@
 {
   "service": {
-    "id": "frontend-student",
-    "name": "frontend-student",
-    "tags": ["frontend", "student", "react"],
+    "id": "frontend-candidate",
+    "name": "frontend-candidate",
+    "tags": ["frontend", "candidate", "react"],
     "port": 80,
-    "address": "frontend-student",
+    "address": "frontend-candidate",
     "check": {
-      "http": "http://frontend-student/health",
+      "http": "http://frontend-candidate/health",
       "interval": "10s",
       "timeout": "3s",
       "deregister_critical_service_after": "30s"

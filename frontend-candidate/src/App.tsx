@@ -7,7 +7,7 @@ function App() {
   return (
     <>
       <div>
-        <h1>DGTT Frontend Candidat</h1>
+        <h1>DGTT Auto-École - Interface Candidat</h1>
       </div>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>

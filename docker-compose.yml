@@ -226,13 +226,13 @@ services:
       - "traefik.http.services.admin.loadbalancer.server.port=80"
 
   # =============================================
-  # STUDENT FRONTEND
+  # CANDIDATE FRONTEND
   # =============================================
-  frontend-student:
+  frontend-candidate:
     build:
-      context: ./frontend-student
+      context: ./frontend-candidate
       dockerfile: Dockerfile
-    container_name: dgtt-frontend-student
+    container_name: dgtt-frontend-candidate
     networks:
       - dgtt-network
     depends_on:
@@ -240,9 +240,9 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.student.rule=Host(`student.dgtt.local`)"
-      - "traefik.http.routers.student.entrypoints=web"
-      - "traefik.http.services.student.loadbalancer.server.port=80"
+      - "traefik.http.routers.candidate.rule=Host(`candidate.dgtt.local`)"
+      - "traefik.http.routers.candidate.entrypoints=web"
+      - "traefik.http.services.candidate.loadbalancer.server.port=80"
 
 volumes:
   # Database volumes
