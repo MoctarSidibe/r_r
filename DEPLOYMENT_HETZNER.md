@@ -156,7 +156,7 @@ services:
   # SERVICE DISCOVERY & CONFIGURATION
   # =============================================
   consul:
-    image: consul:1.16
+    image: consul:1.15
     container_name: dgtt-consul
     command: agent -server -bootstrap-expect=1 -ui -node=server-1 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
     ports:
