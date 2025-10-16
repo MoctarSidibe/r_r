@@ -3,7 +3,7 @@ services:
   # SERVICE DISCOVERY & CONFIGURATION
   # =============================================
   consul:
-    image: consul:1.16
+    image: consul:latest
     container_name: dgtt-consul
     command: agent -config-file=/consul/config/config.json
     ports:
