@@ -6,6 +6,8 @@ RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
     libxml2-dev \
     libzip-dev \
     zip \
@@ -16,6 +18,7 @@ RUN apk add --no-cache \
     supervisor \
     nginx \
     openssl \
+    oniguruma-dev \
     && rm -rf /var/cache/apk/*
 
 # Install PHP extensions with optimizations
@@ -29,7 +32,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     bcmath \
     gd \
     zip \
-    opcache
+    opcache \
+    xml
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -40,8 +44,9 @@ RUN pecl install redis && docker-php-ext-enable redis
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json composer.lock ./
+# Copy composer files (composer.lock is optional)
+COPY composer.json ./
+COPY composer.lock* ./
 
 # Install PHP dependencies with optimizations
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction \
@@ -50,8 +55,8 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 # Copy application code
 COPY . .
 
-# Install and build frontend assets
-RUN npm ci --only=production && npm run build && npm cache clean --force
+# Install and build frontend assets (if package.json exists)
+RUN if [ -f package.json ]; then npm ci --only=production && npm run build && npm cache clean --force; fi
 
 # Production stage
 FROM php:8.2-fpm-alpine AS production
