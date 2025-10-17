@@ -51,12 +51,14 @@ WORKDIR /var/www/html
 COPY composer.json ./
 COPY composer.lock* ./
 
-# Install PHP dependencies with optimizations
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction \
-    && composer dump-autoload --optimize --classmap-authoritative
+# Install PHP dependencies (without scripts since app code isn't copied yet)
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
 # Copy application code
 COPY . .
+
+# Run composer scripts and optimize autoloader after app code is available
+RUN composer dump-autoload --optimize --classmap-authoritative
 
 # Install and build frontend assets (if package.json exists)
 RUN if [ -f package.json ]; then npm ci --only=production && npm run build && npm cache clean --force; fi
