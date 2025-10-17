@@ -61,7 +61,7 @@ COPY . .
 RUN composer dump-autoload --optimize --classmap-authoritative
 
 # Install and build frontend assets (if package.json exists)
-RUN if [ -f package.json ]; then npm ci --only=production && npm run build && npm cache clean --force; fi
+RUN if [ -f package.json ]; then npm install --only=production && npm run build && npm cache clean --force; fi
 
 # Production stage
 FROM php:8.2-fpm-alpine AS production
