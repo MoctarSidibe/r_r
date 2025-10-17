@@ -176,6 +176,7 @@ services:
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.routers.backend.middlewares=backend-stripprefix"
       - "traefik.http.middlewares.backend-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.middlewares.backend-stripprefix.stripprefix.forceSlash=false"
       - "traefik.http.services.backend.loadbalancer.server.port=80"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
