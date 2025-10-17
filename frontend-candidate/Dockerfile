@@ -25,9 +25,8 @@ COPY --from=base /app/dist /usr/share/nginx/html
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Create non-root user
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
+# Use existing nginx user (already exists in nginx:alpine)
+# No need to create user as nginx:alpine already has nginx user
 
 # Set proper permissions
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
