@@ -66,13 +66,15 @@ RUN if [ -f package.json ]; then npm install && npm run build && npm cache clean
 # Production stage
 FROM php:8.2-fpm-alpine AS production
 
-# Install runtime dependencies
+# Install runtime dependencies including PHP extension libraries
 RUN apk add --no-cache \
     nginx \
     supervisor \
     postgresql-client \
     openssl \
     curl \
+    libpng \
+    libzip \
     && rm -rf /var/cache/apk/*
 
 # Copy PHP extensions from base stage
@@ -99,44 +101,44 @@ RUN chown -R www:www /var/www/html \
 
 # Create .env file if it doesn't exist
 RUN if [ ! -f .env ]; then \
-    echo "APP_NAME=DGTT Auto-Ecole\n\
-APP_ENV=production\n\
-APP_KEY=\n\
-APP_DEBUG=false\n\
-APP_URL=http://168.119.123.247/api\n\
-\n\
-LOG_CHANNEL=stack\n\
-LOG_LEVEL=info\n\
-\n\
-DB_CONNECTION=pgsql\n\
-DB_HOST=postgres\n\
-DB_PORT=5432\n\
-DB_DATABASE=dgtt_auto_ecole\n\
-DB_USERNAME=dgtt_user\n\
-DB_PASSWORD=dgtt_password_secure_2024\n\
-\n\
-CACHE_DRIVER=redis\n\
-SESSION_DRIVER=redis\n\
-QUEUE_CONNECTION=rabbitmq\n\
-\n\
-REDIS_HOST=redis\n\
-REDIS_PORT=6379\n\
-REDIS_PASSWORD=\n\
-\n\
-RABBITMQ_HOST=rabbitmq\n\
-RABBITMQ_PORT=5672\n\
-RABBITMQ_USER=dgtt_user\n\
-RABBITMQ_PASSWORD=dgtt_password_secure_2024\n\
-RABBITMQ_VHOST=dgtt_vhost\n\
-\n\
-MAIL_MAILER=smtp\n\
-MAIL_HOST=smtp.gmail.com\n\
-MAIL_PORT=587\n\
-MAIL_USERNAME=\n\
-MAIL_PASSWORD=\n\
-MAIL_ENCRYPTION=tls\n\
-MAIL_FROM_ADDRESS=noreply@dgtt.fr\n\
-MAIL_FROM_NAME=\"DGTT Auto-Ecole\"" > .env; \
+    echo "APP_NAME=DGTT Auto-Ecole" > .env && \
+    echo "APP_ENV=production" >> .env && \
+    echo "APP_KEY=" >> .env && \
+    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_URL=http://168.119.123.247/api" >> .env && \
+    echo "" >> .env && \
+    echo "LOG_CHANNEL=stack" >> .env && \
+    echo "LOG_LEVEL=info" >> .env && \
+    echo "" >> .env && \
+    echo "DB_CONNECTION=pgsql" >> .env && \
+    echo "DB_HOST=postgres" >> .env && \
+    echo "DB_PORT=5432" >> .env && \
+    echo "DB_DATABASE=dgtt_auto_ecole" >> .env && \
+    echo "DB_USERNAME=dgtt_user" >> .env && \
+    echo "DB_PASSWORD=dgtt_password_secure_2024" >> .env && \
+    echo "" >> .env && \
+    echo "CACHE_DRIVER=redis" >> .env && \
+    echo "SESSION_DRIVER=redis" >> .env && \
+    echo "QUEUE_CONNECTION=rabbitmq" >> .env && \
+    echo "" >> .env && \
+    echo "REDIS_HOST=redis" >> .env && \
+    echo "REDIS_PORT=6379" >> .env && \
+    echo "REDIS_PASSWORD=" >> .env && \
+    echo "" >> .env && \
+    echo "RABBITMQ_HOST=rabbitmq" >> .env && \
+    echo "RABBITMQ_PORT=5672" >> .env && \
+    echo "RABBITMQ_USER=dgtt_user" >> .env && \
+    echo "RABBITMQ_PASSWORD=dgtt_password_secure_2024" >> .env && \
+    echo "RABBITMQ_VHOST=dgtt_vhost" >> .env && \
+    echo "" >> .env && \
+    echo "MAIL_MAILER=smtp" >> .env && \
+    echo "MAIL_HOST=smtp.gmail.com" >> .env && \
+    echo "MAIL_PORT=587" >> .env && \
+    echo "MAIL_USERNAME=" >> .env && \
+    echo "MAIL_PASSWORD=" >> .env && \
+    echo "MAIL_ENCRYPTION=tls" >> .env && \
+    echo "MAIL_FROM_ADDRESS=noreply@dgtt.fr" >> .env && \
+    echo "MAIL_FROM_NAME=\"DGTT Auto-Ecole\"" >> .env; \
 fi
 
 # Generate application key
