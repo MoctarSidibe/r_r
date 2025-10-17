@@ -177,7 +177,8 @@ RUN echo 'server {\n\
 }' > /etc/nginx/http.d/default.conf
 
 # Create supervisor configuration
-RUN echo '[supervisord]\n\
+RUN mkdir -p /etc/supervisor/conf.d && \
+    echo '[supervisord]\n\
 nodaemon=true\n\
 user=root\n\
 \n\
