@@ -22,8 +22,8 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:80/health || exit 1
 
-# Switch to non-root user
-USER nginx
+# Run as root for now to avoid permission issues
+# USER nginx
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
