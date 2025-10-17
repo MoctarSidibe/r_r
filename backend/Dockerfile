@@ -102,46 +102,44 @@ RUN chown -R www:www /var/www/html \
 
 # Create .env file if it doesn't exist
 RUN if [ ! -f .env ]; then \
-    cat > .env << 'EOF' \
-APP_NAME="DGTT Auto-Ecole" \
-APP_ENV=production \
-APP_KEY= \
-APP_DEBUG=false \
-APP_URL=http://168.119.123.247/api \
- \
-LOG_CHANNEL=stack \
-LOG_LEVEL=info \
- \
-DB_CONNECTION=pgsql \
-DB_HOST=postgres \
-DB_PORT=5432 \
-DB_DATABASE=dgtt_auto_ecole \
-DB_USERNAME=dgtt_user \
-DB_PASSWORD=dgtt_password_secure_2024 \
- \
-CACHE_DRIVER=redis \
-SESSION_DRIVER=redis \
-QUEUE_CONNECTION=rabbitmq \
- \
-REDIS_HOST=redis \
-REDIS_PORT=6379 \
-REDIS_PASSWORD= \
- \
-RABBITMQ_HOST=rabbitmq \
-RABBITMQ_PORT=5672 \
-RABBITMQ_USER=dgtt_user \
-RABBITMQ_PASSWORD=dgtt_password_secure_2024 \
-RABBITMQ_VHOST=dgtt_vhost \
- \
-MAIL_MAILER=smtp \
-MAIL_HOST=smtp.gmail.com \
-MAIL_PORT=587 \
-MAIL_USERNAME= \
-MAIL_PASSWORD= \
-MAIL_ENCRYPTION=tls \
-MAIL_FROM_ADDRESS=noreply@dgtt.fr \
-MAIL_FROM_NAME="DGTT Auto-Ecole" \
-EOF \
+    echo 'APP_NAME="DGTT Auto-Ecole"' > .env && \
+    echo 'APP_ENV=production' >> .env && \
+    echo 'APP_KEY=' >> .env && \
+    echo 'APP_DEBUG=false' >> .env && \
+    echo 'APP_URL=http://168.119.123.247/api' >> .env && \
+    echo '' >> .env && \
+    echo 'LOG_CHANNEL=stack' >> .env && \
+    echo 'LOG_LEVEL=info' >> .env && \
+    echo '' >> .env && \
+    echo 'DB_CONNECTION=pgsql' >> .env && \
+    echo 'DB_HOST=postgres' >> .env && \
+    echo 'DB_PORT=5432' >> .env && \
+    echo 'DB_DATABASE=dgtt_auto_ecole' >> .env && \
+    echo 'DB_USERNAME=dgtt_user' >> .env && \
+    echo 'DB_PASSWORD=dgtt_password_secure_2024' >> .env && \
+    echo '' >> .env && \
+    echo 'CACHE_DRIVER=redis' >> .env && \
+    echo 'SESSION_DRIVER=redis' >> .env && \
+    echo 'QUEUE_CONNECTION=rabbitmq' >> .env && \
+    echo '' >> .env && \
+    echo 'REDIS_HOST=redis' >> .env && \
+    echo 'REDIS_PORT=6379' >> .env && \
+    echo 'REDIS_PASSWORD=' >> .env && \
+    echo '' >> .env && \
+    echo 'RABBITMQ_HOST=rabbitmq' >> .env && \
+    echo 'RABBITMQ_PORT=5672' >> .env && \
+    echo 'RABBITMQ_USER=dgtt_user' >> .env && \
+    echo 'RABBITMQ_PASSWORD=dgtt_password_secure_2024' >> .env && \
+    echo 'RABBITMQ_VHOST=dgtt_vhost' >> .env && \
+    echo '' >> .env && \
+    echo 'MAIL_MAILER=smtp' >> .env && \
+    echo 'MAIL_HOST=smtp.gmail.com' >> .env && \
+    echo 'MAIL_PORT=587' >> .env && \
+    echo 'MAIL_USERNAME=' >> .env && \
+    echo 'MAIL_PASSWORD=' >> .env && \
+    echo 'MAIL_ENCRYPTION=tls' >> .env && \
+    echo 'MAIL_FROM_ADDRESS=noreply@dgtt.fr' >> .env && \
+    echo 'MAIL_FROM_NAME="DGTT Auto-Ecole"' >> .env; \
 fi
 
 # Generate application key
