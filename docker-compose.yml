@@ -5,14 +5,13 @@ services:
   consul:
     image: consul:1.15
     container_name: dgtt-consul
-    command: agent -config-file=/consul/config/config.json
+    command: agent -server -bootstrap-expect=1 -ui -node=server-1 -bind=0.0.0.0 -client=0.0.0.0 -datacenter=dc1
     ports:
       - "8500:8500"
       - "8600:8600/udp"
     volumes:
       - consul_data:/consul/data
-      - ./consul/config.json:/consul/config/config.json:ro
-      - ./consul/services:/consul/config/services:ro
+      - consul_config:/consul/config
     networks:
       - dgtt-network
     restart: unless-stopped
@@ -38,7 +37,7 @@ services:
     environment:
       POSTGRES_DB: dgtt_auto_ecole
       POSTGRES_USER: dgtt_user
-      POSTGRES_PASSWORD: dgtt_password
+      POSTGRES_PASSWORD: dgtt_password_secure_2024
     ports:
       - "5432:5432"
     volumes:
@@ -81,16 +80,13 @@ services:
     container_name: dgtt-rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=dgtt_user
-      - RABBITMQ_DEFAULT_PASS=dgtt_password
+      - RABBITMQ_DEFAULT_PASS=dgtt_password_secure_2024
       - RABBITMQ_DEFAULT_VHOST=dgtt_vhost
-      - RABBITMQ_DEFINITIONS_FILE=/etc/rabbitmq/definitions.json
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     networks:
       - dgtt-network
     restart: unless-stopped
@@ -133,7 +129,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=Host(`traefik.dgtt.local`)"
+      - "traefik.http.routers.traefik.rule=Host(`168.119.123.247`) && PathPrefix(`/traefik`)"
       - "traefik.http.routers.traefik.entrypoints=web"
 
   # =============================================
@@ -152,13 +148,13 @@ services:
       - DB_PORT=5432
       - DB_DATABASE=dgtt_auto_ecole
       - DB_USERNAME=dgtt_user
-      - DB_PASSWORD=dgtt_password
+      - DB_PASSWORD=dgtt_password_secure_2024
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=dgtt_user
-      - RABBITMQ_PASSWORD=dgtt_password
+      - RABBITMQ_PASSWORD=dgtt_password_secure_2024
       - RABBITMQ_VHOST=dgtt_vhost
     volumes:
       - backend_storage:/var/www/html/storage
@@ -176,7 +172,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.dgtt.local`)"
+      - "traefik.http.routers.backend.rule=Host(`168.119.123.247`) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=80"
     healthcheck:
@@ -200,7 +196,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gateway.rule=Host(`dgtt.local`)"
+      - "traefik.http.routers.gateway.rule=Host(`168.119.123.247`)"
       - "traefik.http.routers.gateway.entrypoints=web"
       - "traefik.http.services.gateway.loadbalancer.server.port=80"
 
@@ -219,7 +215,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.admin.rule=Host(`admin.dgtt.local`)"
+      - "traefik.http.routers.admin.rule=Host(`168.119.123.247`) && PathPrefix(`/admin`)"
       - "traefik.http.routers.admin.entrypoints=web"
       - "traefik.http.services.admin.loadbalancer.server.port=80"
 
@@ -238,7 +234,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.candidate.rule=Host(`candidate.dgtt.local`)"
+      - "traefik.http.routers.candidate.rule=Host(`168.119.123.247`) && PathPrefix(`/candidate`)"
       - "traefik.http.routers.candidate.entrypoints=web"
       - "traefik.http.services.candidate.loadbalancer.server.port=80"
 

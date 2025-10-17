@@ -62,6 +62,7 @@ RUN apk add --no-cache \
     supervisor \
     postgresql-client \
     openssl \
+    curl \
     && rm -rf /var/cache/apk/*
 
 # Copy PHP extensions from base stage
@@ -92,30 +93,31 @@ RUN if [ ! -f .env ]; then \
 APP_ENV=production\n\
 APP_KEY=\n\
 APP_DEBUG=false\n\
-APP_URL=https://api.dgtt.local\n\
+APP_URL=http://168.119.123.247/api\n\
 \n\
 LOG_CHANNEL=stack\n\
 LOG_LEVEL=info\n\
 \n\
 DB_CONNECTION=pgsql\n\
-DB_HOST=postgres-primary\n\
+DB_HOST=postgres\n\
 DB_PORT=5432\n\
-DB_DATABASE=dgtt_autoecole\n\
+DB_DATABASE=dgtt_auto_ecole\n\
 DB_USERNAME=dgtt_user\n\
-DB_PASSWORD=\n\
+DB_PASSWORD=dgtt_password_secure_2024\n\
 \n\
 CACHE_DRIVER=redis\n\
 SESSION_DRIVER=redis\n\
 QUEUE_CONNECTION=rabbitmq\n\
 \n\
-REDIS_HOST=redis-primary\n\
+REDIS_HOST=redis\n\
 REDIS_PORT=6379\n\
 REDIS_PASSWORD=\n\
 \n\
 RABBITMQ_HOST=rabbitmq\n\
 RABBITMQ_PORT=5672\n\
-RABBITMQ_USER=\n\
-RABBITMQ_PASSWORD=\n\
+RABBITMQ_USER=dgtt_user\n\
+RABBITMQ_PASSWORD=dgtt_password_secure_2024\n\
+RABBITMQ_VHOST=dgtt_vhost\n\
 \n\
 MAIL_MAILER=smtp\n\
 MAIL_HOST=smtp.gmail.com\n\
@@ -136,15 +138,56 @@ RUN php artisan migrate --force --no-interaction \
     && php artisan route:cache \
     && php artisan view:cache
 
+# Create nginx configuration
+RUN echo 'server {\n\
+    listen 80;\n\
+    server_name localhost;\n\
+    root /var/www/html/public;\n\
+    index index.php index.html;\n\
+\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php?$query_string;\n\
+    }\n\
+\n\
+    location ~ \.php$ {\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
+        fastcgi_index index.php;\n\
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
+        include fastcgi_params;\n\
+    }\n\
+\n\
+    location /health {\n\
+        access_log off;\n\
+        return 200 "healthy\\n";\n\
+        add_header Content-Type text/plain;\n\
+    }\n\
+}' > /etc/nginx/http.d/default.conf
+
+# Create supervisor configuration
+RUN echo '[supervisord]\n\
+nodaemon=true\n\
+user=root\n\
+\n\
+[program:php-fpm]\n\
+command=php-fpm -F\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
+\n\
+[program:nginx]\n\
+command=nginx -g "daemon off;"\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0' > /etc/supervisor/conf.d/supervisord.conf
+
 # Expose port
-EXPOSE 8000
+EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost/health || exit 1
 
-# Switch to non-root user
-USER www
-
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

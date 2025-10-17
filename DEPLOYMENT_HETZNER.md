@@ -662,7 +662,7 @@ EOF
 cd /opt/dgtt-auto-ecole
 
 # Démarrer les services de base
-docker-compose up -d consul postgres redis rabbitmq traefik
+docker-compose up -d consul:1.15 postgres redis rabbitmq traefik
 
 # Attendre que les services soient prêts
 sleep 30
@@ -831,13 +831,63 @@ docker-compose logs | grep -i error
 
 ---
 
+## 🚀 ÉTAPE 11: Déploiement des Services d'Application
+
+### **11.1 Déploiement du Backend Laravel**
+```bash
+cd /opt/dgtt-auto-ecole
+
+# Construire et démarrer le backend
+docker-compose up -d --build backend
+
+# Vérifier les logs du backend
+docker-compose logs backend
+
+# Vérifier que le backend est accessible
+curl http://168.119.123.247/api/health
+```
+
+### **11.2 Déploiement des Frontends**
+```bash
+# Construire et démarrer tous les frontends
+docker-compose up -d --build frontend-gateway frontend-admin frontend-candidate
+
+# Vérifier les logs
+docker-compose logs frontend-gateway
+docker-compose logs frontend-admin
+docker-compose logs frontend-candidate
+```
+
+### **11.3 Vérification Complète**
+```bash
+# Vérifier le statut de tous les services
+docker-compose ps
+
+# Tester tous les endpoints
+curl http://168.119.123.247/health                    # Gateway
+curl http://168.119.123.247/admin/health             # Admin Frontend
+curl http://168.119.123.247/candidate/health         # Candidate Frontend
+curl http://168.119.123.247/api/health               # Backend API
+```
+
+### **11.4 URLs d'Accès Finales**
+- **Interface Principale**: http://168.119.123.247
+- **Interface Admin**: http://168.119.123.247/admin
+- **Interface Candidat**: http://168.119.123.247/candidate
+- **API Backend**: http://168.119.123.247/api
+- **Traefik Dashboard**: http://168.119.123.247:8080
+- **Consul UI**: http://168.119.123.247:8500
+- **RabbitMQ Management**: http://168.119.123.247:15672
+
+---
+
 ## 🎯 Prochaines Étapes
 
-1. **Déploiement des Frontends**: Ajouter les services frontend-admin et frontend-candidate
-2. **Déploiement du Backend**: Ajouter l'API Laravel
-3. **Configuration SSL**: Configurer les domaines avec certificats Let's Encrypt
-4. **Monitoring**: Ajouter Prometheus, Grafana et ELK Stack
-5. **Tests**: Effectuer des tests de charge et de sécurité
+1. **Configuration SSL**: Configurer les domaines avec certificats Let's Encrypt
+2. **Monitoring**: Ajouter Prometheus, Grafana et ELK Stack
+3. **Tests**: Effectuer des tests de charge et de sécurité
+4. **Backup**: Configurer les sauvegardes automatiques
+5. **Sécurité**: Audit de sécurité et configuration des pare-feu
 
 ---
 
