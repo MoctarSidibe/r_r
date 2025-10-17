@@ -76,6 +76,7 @@ RUN apk add --no-cache \
     libpng \
     libjpeg-turbo \
     libzip \
+    freetype \
     && rm -rf /var/cache/apk/*
 
 # Copy PHP extensions from base stage
@@ -145,9 +146,8 @@ fi
 # Generate application key
 RUN php artisan key:generate --no-interaction
 
-# Run migrations and optimizations
-RUN php artisan migrate --force --no-interaction \
-    && php artisan config:cache \
+# Run optimizations (migrations will be handled at runtime)
+RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
