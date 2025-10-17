@@ -38,11 +38,11 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Install Redis extension (need autoconf for PECL)
-RUN apk add --no-cache autoconf && \
+# Install Redis extension (need autoconf and make for PECL)
+RUN apk add --no-cache autoconf make && \
     pecl install redis && \
     docker-php-ext-enable redis && \
-    apk del autoconf
+    apk del autoconf make
 
 # Set working directory
 WORKDIR /var/www/html
