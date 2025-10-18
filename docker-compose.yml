@@ -221,6 +221,8 @@ services:
       - "traefik.http.routers.admin.rule=Host(`168.119.123.247`) && PathPrefix(`/admin`)"
       - "traefik.http.routers.admin.entrypoints=web"
       - "traefik.http.services.admin.loadbalancer.server.port=80"
+      - "traefik.http.routers.admin.middlewares=admin-stripprefix"
+      - "traefik.http.middlewares.admin-stripprefix.stripprefix.prefixes=/admin"
 
   # =============================================
   # CANDIDATE FRONTEND
@@ -240,6 +242,8 @@ services:
       - "traefik.http.routers.candidate.rule=Host(`168.119.123.247`) && PathPrefix(`/candidate`)"
       - "traefik.http.routers.candidate.entrypoints=web"
       - "traefik.http.services.candidate.loadbalancer.server.port=80"
+      - "traefik.http.routers.candidate.middlewares=candidate-stripprefix"
+      - "traefik.http.middlewares.candidate-stripprefix.stripprefix.prefixes=/candidate"
 
 volumes:
   # Database volumes
