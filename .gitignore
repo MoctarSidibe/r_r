@@ -99,10 +99,11 @@ storage/logs/*
 # Composer
 composer.lock
 
-# Backup files
+# Database files (security)
+database/
+*.sql
 *.bak
 *.backup
-*.sql
 
 # Temporary files
 tmp/
