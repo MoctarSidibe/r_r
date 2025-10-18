@@ -19,8 +19,9 @@ FROM nginx:alpine AS production
 # Install security updates
 RUN apk update && apk upgrade && apk add --no-cache curl
 
-# Copy built assets
-COPY --from=base /app/dist /usr/share/nginx/html
+# Create candidate directory and copy built assets
+RUN mkdir -p /usr/share/nginx/html/candidate
+COPY --from=base /app/dist /usr/share/nginx/html/candidate
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
